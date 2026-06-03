@@ -1,0 +1,2 @@
+id,lamina_id,tipo,precio,lamina_deseada_id,propietario_nombre,propietario_contacto,descripcion,fecha_creacion,estado
+1,3,intercambio,100.0,9,sebastian,string,string,2026-05-07,cancelado

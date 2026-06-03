@@ -1,0 +1,6 @@
+id,nombre,pais,posicion,numero_camiseta,edad,foto_url,estado
+1,james rodriguez,string,centrocampista,10,34,string,activo
+2,david ospina,colombia,portero,1,37,string,activo
+3,daniel muñoz,colombia,defensa,2,29,string,activo
+4,richard rios,colombia,centrocampista,6,25,string,activo
+5,luis suares,colombia,delantero,19,28,string,inactivo

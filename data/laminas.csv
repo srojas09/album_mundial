@@ -1,0 +1,4 @@
+id,numero_lamina,jugador_id,tengo,cantidad_repetidas,estado
+1,1,1,False,0,inactivo
+2,2,2,True,0,activo
+3,4,4,True,1,activo
