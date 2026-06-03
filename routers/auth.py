@@ -20,7 +20,7 @@ def root(request: Request):
 
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="login.html")
 
 
 @router.post("/login")
@@ -32,8 +32,7 @@ def login(
 ):
     user = db.query(Usuario).filter(Usuario.email == email).first()
     if not user or not verify_password(password, user.password_hash):
-        return templates.TemplateResponse("login.html", {
-            "request": request,
+        return templates.TemplateResponse(request=request, name="login.html", context={
             "error": "Email o contraseña incorrectos"
         })
 
@@ -50,7 +49,7 @@ def login(
 
 @router.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="register.html")
 
 
 @router.post("/register")
@@ -63,15 +62,13 @@ def register(
     db: Session = Depends(get_db)
 ):
     if password != confirmar_password:
-        return templates.TemplateResponse("register.html", {
-            "request": request,
+        return templates.TemplateResponse(request=request, name="register.html", context={
             "error": "Las contraseñas no coinciden"
         })
 
     existente = db.query(Usuario).filter(Usuario.email == email).first()
     if existente:
-        return templates.TemplateResponse("register.html", {
-            "request": request,
+        return templates.TemplateResponse(request=request, name="register.html", context={
             "error": "Este email ya está registrado"
         })
 
