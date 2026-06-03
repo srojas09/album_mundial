@@ -11,11 +11,11 @@ templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-def root(request: Request):
+def root(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("access_token")
     if token:
         return RedirectResponse(url="/home", status_code=302)
-    return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse(request=request, name="landing.html")
 
 
 @router.get("/login", response_class=HTMLResponse)
