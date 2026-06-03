@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio — Álbum Mundial 2026{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="fw-bold mb-2">
+                <i class="bi bi-trophy-fill text-warning"></i>
+                Bienvenido, {{ user.nombre }}
+            </h1>
+            <p class="lead mb-0">Gestiona tu álbum del Mundial FIFA 2026</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                <i class="bi bi-star-fill"></i> Mundial 2026
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-warning fs-1 fw-bold">{{ total_jugadores }}</div>
+            <div class="text-muted">Total láminas</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-success fs-1 fw-bold">{{ tengo }}</div>
+            <div class="text-muted">Las tengo</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-danger fs-1 fw-bold">{{ faltantes }}</div>
+            <div class="text-muted">Me faltan</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-primary fs-1 fw-bold">{{ progreso }}%</div>
+            <div class="text-muted">Completado</div>
+        </div>
+    </div>
+</div>
+
+<!-- Barra de progreso -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+            <span class="fw-semibold">Progreso del álbum</span>
+            <span class="text-muted">{{ tengo }} / {{ total_jugadores }}</span>
+        </div>
+        <div class="progress">
+            <div class="progress-bar bg-warning" style="width: {{ progreso }}%"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos rápidos -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <a href="/album" class="text-decoration-none">
+            <div class="card border-0 shadow-sm p-3 text-center h-100">
+                <i class="bi bi-book-fill text-warning fs-2 mb-2"></i>
+                <h5 class="fw-bold">Mi Álbum</h5>
+                <p class="text-muted small mb-0">Ver todas las láminas y marcar las que tienes</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/repetidas" class="text-decoration-none">
+            <div class="card border-0 shadow-sm p-3 text-center h-100">
+                <i class="bi bi-arrow-repeat text-warning fs-2 mb-2"></i>
+                <h5 class="fw-bold">Repetidas</h5>
+                <p class="text-muted small mb-0">Gestiona tus láminas repetidas</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/marketplace" class="text-decoration-none">
+            <div class="card border-0 shadow-sm p-3 text-center h-100">
+                <i class="bi bi-shop text-warning fs-2 mb-2"></i>
+                <h5 class="fw-bold">Marketplace</h5>
+                <p class="text-muted small mb-0">Compra y vende láminas con otros usuarios</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Selecciones -->
+<h4 class="fw-bold mb-3">
+    <i class="bi bi-flag-fill text-warning"></i> Selecciones del Mundial
+</h4>
+<div class="row g-3">
+    {% for seleccion in selecciones %}
+    <div class="col-6 col-md-3 col-lg-2">
+        <a href="/seleccion/{{ seleccion.id }}" class="text-decoration-none">
+            <div class="card border-0 shadow-sm seleccion-card h-100">
+                {% if seleccion.logo_url %}
+                <img src="{{ seleccion.logo_url }}" alt="{{ seleccion.nombre }}"
+                     class="mx-auto mt-3" style="width:56px;height:56px;object-fit:contain;">
+                {% else %}
+                <div class="text-center mt-3">
+                    <i class="bi bi-shield-fill text-secondary" style="font-size:3rem;"></i>
+                </div>
+                {% endif %}
+                <div class="card-body p-2 text-center">
+                    <p class="small fw-semibold mb-0 text-dark">{{ seleccion.nombre }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

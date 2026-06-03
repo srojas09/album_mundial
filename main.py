@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from routers import auth as auth_router
+from routers import home as home_router
 
 app = FastAPI(
     title="🌍 Álbum Mundial 2026",
@@ -12,3 +12,4 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(auth_router.router)
+app.include_router(home_router.router)
