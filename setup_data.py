@@ -1,9 +1,55 @@
 import sys
 sys.path.insert(0, '.')
+import requests
+import time
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 from database import SessionLocal
 from models.seleccion import Seleccion
 from models.jugador import Jugador
+
+# ─── Configuración API ────────────────────────────────────────────────────────
+
+API_KEY = os.getenv("API_FOOTBALL_KEY")
+BALLDONTLIE_URL = "https://api.balldontlie.io/fifa/worldcup/v1"
+HEADERS = {"Authorization": API_KEY}
+
+# ─── Mapeos ───────────────────────────────────────────────────────────────────
+
+FLAG_MAP = {
+    "Algeria": "dz", "Argentina": "ar", "Australia": "au", "Austria": "at",
+    "Belgium": "be", "Bosnia & Herzegovina": "ba", "Brazil": "br", "Cabo Verde": "cv",
+    "Canada": "ca", "Colombia": "co", "Côte d'Ivoire": "ci", "Croatia": "hr",
+    "Curaçao": "cw", "Czechia": "cz", "DR Congo": "cd", "Ecuador": "ec",
+    "Egypt": "eg", "England": "gb-eng", "France": "fr", "Germany": "de",
+    "Ghana": "gh", "Haiti": "ht", "Iran": "ir", "Iraq": "iq",
+    "Japan": "jp", "Jordan": "jo", "Mexico": "mx", "Morocco": "ma",
+    "Netherlands": "nl", "New Zealand": "nz", "Norway": "no", "Panama": "pa",
+    "Paraguay": "py", "Portugal": "pt", "Qatar": "qa", "Saudi Arabia": "sa",
+    "Scotland": "gb-sct", "Senegal": "sn", "South Africa": "za", "South Korea": "kr",
+    "Spain": "es", "Sweden": "se", "Switzerland": "ch", "Tunisia": "tn",
+    "Türkiye": "tr", "Uruguay": "uy", "USA": "us", "Uzbekistan": "uz",
+}
+
+GRUPOS = {
+    "A": ["USA", "Panama", "Morocco", "Algeria"],
+    "B": ["Mexico", "Ecuador", "Uzbekistan", "Haiti"],
+    "C": ["Argentina", "Chile", "Peru", "Australia"],
+    "D": ["France", "Belgium", "Croatia", "Egypt"],
+    "E": ["Spain", "Switzerland", "Türkiye", "Côte d'Ivoire"],
+    "F": ["Brazil", "Colombia", "Paraguay", "Saudi Arabia"],
+    "G": ["England", "Germany", "DR Congo", "Iraq"],
+    "H": ["Netherlands", "Senegal", "Japan", "Canada"],
+    "I": ["Portugal", "Uruguay", "Czechia", "Curaçao"],
+    "J": ["South Korea", "Norway", "Ghana", "Bosnia & Herzegovina"],
+    "K": ["Morocco", "Iran", "New Zealand", "Tunisia"],
+    "L": ["Qatar", "Austria", "Jordan", "South Africa"],
+}
+
+SELECCION_GRUPO = {equipo: grupo for grupo, equipos in GRUPOS.items() for equipo in equipos}
 
 PLAYERS_DATA = [
     {
@@ -365,41 +411,165 @@ PLAYERS_DATA = [
 ]
 
 
-def seed():
+# ─── PASO 1: Importar selecciones desde API ───────────────────────────────────
+
+def importar_selecciones():
+    print("\n📡 PASO 1: Importando selecciones desde API...")
+    response = requests.get(
+        f"{BALLDONTLIE_URL}/teams",
+        headers=HEADERS,
+        params={"seasons[]": 2026}
+    )
+    data = response.json()
+
+    if not data.get("data"):
+        print("❌ Error:", data)
+        return
+
     db = SessionLocal()
     total = 0
+    for team in data["data"]:
+        existente = db.query(Seleccion).filter(Seleccion.id_api == team["id"]).first()
+        if not existente:
+            seleccion = Seleccion(
+                id_api=team["id"],
+                nombre=team["name"],
+                pais=team["name"],
+                activo=True
+            )
+            db.add(seleccion)
+            total += 1
+            print(f"  ✅ {team['name']}")
+        else:
+            print(f"  ⏩ Ya existe: {team['name']}")
+    db.commit()
+    db.close()
+    print(f"  → {total} selecciones nuevas importadas.")
 
+
+# ─── PASO 2: Seed de jugadores ────────────────────────────────────────────────
+
+def seed_jugadores():
+    print("\n🌍 PASO 2: Cargando jugadores...")
+    db = SessionLocal()
+    total = 0
     for team_data in PLAYERS_DATA:
-        country = team_data["country"]
-        seleccion = db.query(Seleccion).filter(Seleccion.pais == country).first()
-
+        seleccion = db.query(Seleccion).filter(Seleccion.pais == team_data["country"]).first()
         if not seleccion:
-            print(f"  ⚠️ No se encontró selección: {country}")
+            print(f"  ⚠️ No se encontró: {team_data['country']}")
             continue
-
         for p in team_data["players"]:
-            existente = db.query(Jugador).filter(Jugador.id_api == p["id_api"]).first()
-            if not existente:
-                jugador = Jugador(
+            if not db.query(Jugador).filter(Jugador.id_api == p["id_api"]).first():
+                db.add(Jugador(
                     id_api=p["id_api"],
                     nombre=p["nombre"],
                     seleccion_id=seleccion.id,
                     posicion=p["posicion"],
                     numero_camiseta=p["numero_camiseta"],
                     edad=p["edad"],
-                    foto_url=None,
                     activo=True
-                )
-                db.add(jugador)
+                ))
                 total += 1
-
         db.commit()
-        print(f"  ✅ {country}")
-
+        print(f"  ✅ {team_data['country']}")
     db.close()
-    print(f"\n✅ Total jugadores importados: {total}")
+    print(f"  → {total} jugadores nuevos cargados.")
 
+
+# ─── PASO 3: Fix logos y grupos ───────────────────────────────────────────────
+
+def fix_selecciones():
+    print("\n🔧 PASO 3: Actualizando logos y grupos...")
+    db = SessionLocal()
+    actualizadas = 0
+    for s in db.query(Seleccion).all():
+        iso = FLAG_MAP.get(s.nombre)
+        if iso:
+            s.logo_url = f"https://flagcdn.com/w80/{iso}.png"
+            actualizadas += 1
+        grupo = SELECCION_GRUPO.get(s.nombre)
+        if grupo:
+            s.grupo = grupo
+    db.commit()
+    db.close()
+    print(f"  → {actualizadas} selecciones actualizadas.")
+
+
+# ─── PASO 4: Fix fotos jugadores ─────────────────────────────────────────────
+
+def buscar_foto(nombre, intentos=3):
+    for i in range(intentos):
+        try:
+            r = requests.get(
+                "https://www.thesportsdb.com/api/v1/json/3/searchplayers.php",
+                params={"p": nombre},
+                timeout=10
+            )
+            if not r.text or not r.text.strip() or r.text.strip() == "null":
+                time.sleep(5)
+                continue
+            try:
+                data = r.json()
+            except Exception:
+                time.sleep(5)
+                continue
+            if data.get("player") and data["player"][0].get("strThumb"):
+                return data["player"][0]["strThumb"]
+            return None
+        except Exception:
+            time.sleep(3)
+    return None
+
+def fix_fotos():
+    print("\n📸 PASO 4: Actualizando fotos de jugadores...")
+
+    db = SessionLocal()
+    jugadores_data = [(j.id, j.nombre) for j in db.query(Jugador).all()]
+    db.close()
+
+    actualizados = 0
+    sin_foto = 0
+
+    for i, (jugador_id, nombre) in enumerate(jugadores_data):
+        foto = buscar_foto(nombre)
+        nombre_encoded = nombre.replace(" ", "+")
+        foto_final = foto if foto else f"https://ui-avatars.com/api/?name={nombre_encoded}&background=ffc107&color=000&size=200&bold=true"
+
+        if foto:
+            actualizados += 1
+            print(f"  ✅ {nombre}")
+        else:
+            sin_foto += 1
+            print(f"  ⚠️ Avatar: {nombre}")
+
+        # Sesión nueva por cada jugador para evitar timeouts
+        try:
+            db = SessionLocal()
+            j = db.query(Jugador).filter(Jugador.id == jugador_id).first()
+            if j:
+                j.foto_url = foto_final
+                db.commit()
+        except Exception as e:
+            print(f"  ❌ Error guardando {nombre}: {e}")
+            db.rollback()
+        finally:
+            db.close()
+
+        time.sleep(1.5)
+
+    print(f"  → {actualizados} fotos reales | {sin_foto} avatares.")
+
+
+# ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("🌍 Importando jugadores del Mundial 2026...\n")
-    seed()
+    print("=" * 50)
+    print("  SETUP DE BASE DE DATOS — ÁLBUM MUNDIAL 2026")
+    print("=" * 50)
+    importar_selecciones()
+    seed_jugadores()
+    fix_selecciones()
+    fix_fotos()
+    print("\n" + "=" * 50)
+    print("  ✅ BASE DE DATOS LISTA")
+    print("=" * 50)
