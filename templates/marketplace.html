@@ -4,6 +4,14 @@
 
 {% block content %}
 
+{% if request.query_params.get('compra') == 'exitosa' %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle"></i>
+    <strong>¡Compra exitosa!</strong> La lámina fue agregada a tu álbum.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold mb-0">
         <i class="bi bi-shop text-warning"></i> Marketplace
@@ -71,9 +79,9 @@
                                 </button>
                             </form>
                             {% else %}
-                            <button class="btn btn-sm btn-warning fw-bold">
+                            <a href="/marketplace/comprar/{{ pub.id }}" class="btn btn-sm btn-warning fw-bold">
                                 <i class="bi bi-bag"></i> Comprar
-                            </button>
+                            </a>
                             {% endif %}
                         </div>
                     </div>
