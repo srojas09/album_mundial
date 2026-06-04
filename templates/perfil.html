@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil — Mundial 2026{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <h3 class="fw-bold mb-4">
+            <i class="bi bi-person-circle text-warning"></i> Mi Perfil
+        </h3>
+
+        {% if error %}
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> {{ error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> {{ success }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+
+            <!-- Lámina Panini del usuario -->
+            <div class="col-md-5 text-center">
+                <p class="text-muted small mb-3">Tu lámina del álbum</p>
+
+                <div style="border-radius:16px;background:#fff;border:8px solid #fff;box-shadow:4px 6px 20px rgba(0,0,0,0.2);overflow:hidden;max-width:320px;margin:0 auto;">
+
+                    <!-- Header -->
+                    <div style="background:linear-gradient(135deg,#ffc107,#ff8f00);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:13px;font-weight:700;color:#fff;">⭐ ÁLBUM</span>
+                        <span style="font-size:13px;font-weight:700;color:#fff;">2026</span>
+                    </div>
+
+                    <!-- Foto -->
+                    <div style="width:100%;height:280px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                        {% if user.foto_url %}
+                        <img src="{{ user.foto_url }}" alt="{{ user.nombre }}"
+                             style="width:100%;height:280px;object-fit:cover;">
+                        {% else %}
+                        <i class="bi bi-person-fill" style="font-size:7rem;color:#ccc;"></i>
+                        {% endif %}
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="background:linear-gradient(135deg,#ffc107,#ff8f00);padding:12px 14px;">
+                        <div style="font-size:14px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;">
+                            {{ user.nombre }}
+                        </div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.85);margin-top:2px;">
+                            Coleccionista · Mundial 2026
+                        </div>
+                    </div>
+
+                </div>
+
+                <p class="text-muted small mt-3">
+                    Sube tu foto para personalizar tu lámina
+                </p>
+            </div>
+            <!-- Formulario -->
+            <div class="col-md-7">
+
+                <!-- Info del usuario -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Información de la cuenta</h5>
+                        <div class="mb-2">
+                            <span class="text-muted small">Nombre</span>
+                            <p class="fw-semibold mb-0">{{ user.nombre }}</p>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted small">Email</span>
+                            <p class="fw-semibold mb-0">{{ user.email }}</p>
+                        </div>
+                        <div>
+                            <span class="text-muted small">Miembro desde</span>
+                            <p class="fw-semibold mb-0">{{ user.fecha_registro.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subir foto -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-1">
+                            <i class="bi bi-camera text-warning"></i> Subir foto de perfil
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            JPG, PNG o WEBP · Máximo 5MB · Se recortará automáticamente al rostro
+                        </p>
+
+                        <form method="post" action="/perfil/foto" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <input type="file" name="foto" class="form-control"
+                                       accept="image/jpeg,image/png,image/webp" required
+                                       id="inputFoto">
+                            </div>
+
+                            <!-- Preview -->
+                            <div id="previewContainer" class="mb-3 d-none text-center">
+                                <img id="preview" src="" alt="Preview"
+                                     style="max-height:150px;border-radius:8px;object-fit:cover;">
+                            </div>
+
+                            <button type="submit" class="btn btn-warning fw-bold w-100">
+                                <i class="bi bi-cloud-upload"></i> Cargar Imagen
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('inputFoto').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                document.getElementById('preview').src = ev.target.result;
+                document.getElementById('previewContainer').classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

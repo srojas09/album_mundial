@@ -4,3 +4,4 @@ from . import album
 from . import repetidas
 from . import marketplace
 from . import stats
+from . import perfil
