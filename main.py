@@ -5,6 +5,7 @@ from routers import home as home_router
 from routers import album as album_router
 from routers import repetidas as repetidas_router
 from routers import marketplace as marketplace_router
+from routers import stats as stats_router
 
 app = FastAPI(
     title="🌍 Álbum Mundial 2026",
@@ -19,3 +20,4 @@ app.include_router(home_router.router)
 app.include_router(album_router.router)
 app.include_router(repetidas_router.router)
 app.include_router(marketplace_router.router)
+app.include_router(stats_router.router)

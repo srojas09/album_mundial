@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Estadísticas — Mundial 2026{% endblock %}
+
+{% block content %}
+
+<h3 class="fw-bold mb-4">
+    <i class="bi bi-bar-chart-fill text-warning"></i> Estadísticas
+</h3>
+
+<!-- Tarjetas resumen -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-warning fw-bold fs-3">{{ total_jugadores }}</div>
+            <div class="text-muted small">Total láminas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-success fw-bold fs-3">{{ mis_laminas }}</div>
+            <div class="text-muted small">Tengo</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-danger fw-bold fs-3">{{ faltantes }}</div>
+            <div class="text-muted small">Faltan</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-warning fw-bold fs-3">{{ mis_repetidas }}</div>
+            <div class="text-muted small">Repetidas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-primary fw-bold fs-3">{{ mis_publicaciones }}</div>
+            <div class="text-muted small">Publicadas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-success fw-bold fs-3">{{ mis_ventas }}</div>
+            <div class="text-muted small">Vendidas</div>
+        </div>
+    </div>
+</div>
+
+<!-- Progreso general -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">Progreso general del álbum</h5>
+        <div class="d-flex justify-content-between mb-2">
+            <span>{{ mis_laminas }} de {{ total_jugadores }} láminas</span>
+            <span class="fw-bold text-warning">{{ progreso }}%</span>
+        </div>
+        <div class="progress" style="height:20px;">
+            <div class="progress-bar bg-warning fw-bold"
+                 style="width: {{ progreso }}%">
+                {{ progreso }}%
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Gráfica por posición -->
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Láminas por posición</h5>
+                <canvas id="chartPosiciones"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfica tengo vs faltan -->
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Tengo vs Me faltan</h5>
+                <canvas id="chartProgreso"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Progreso por selección -->
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">Progreso por selección</h5>
+        <div class="row g-2">
+            {% for s in progreso_selecciones %}
+            {% if s.total > 0 %}
+            <div class="col-md-6">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    {% if s.logo %}
+                    <img src="{{ s.logo }}" style="width:24px;height:24px;object-fit:contain;">
+                    {% endif %}
+                    <span class="small fw-semibold text-truncate" style="width:140px;">{{ s.nombre }}</span>
+                    <span class="small text-muted ms-auto">{{ s.tengo }}/{{ s.total }}</span>
+                    <span class="small fw-bold text-warning" style="width:45px;text-align:right;">{{ s.porcentaje }}%</span>
+                </div>
+                <div class="progress mb-2" style="height:8px;">
+                    <div class="progress-bar bg-warning" style="width:{{ s.porcentaje }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const posiciones = {{ dist_posiciones | tojson | safe }};
+    const misLaminas = {{ mis_laminas | tojson }};
+    const faltantes = {{ faltantes | tojson }};
+
+    new Chart(document.getElementById('chartProgreso'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Tengo', 'Me faltan'],
+            datasets: [{
+                data: [misLaminas, faltantes],
+                backgroundColor: ['#ffc107', '#dee2e6'],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('chartPosiciones'), {
+        type: 'bar',
+        data: {
+            labels: posiciones.map(p => p.posicion),
+            datasets: [
+                {
+                    label: 'Tengo',
+                    data: posiciones.map(p => p.tengo),
+                    backgroundColor: '#ffc107',
+                },
+                {
+                    label: 'Faltan',
+                    data: posiciones.map(p => p.total - p.tengo),
+                    backgroundColor: '#dee2e6',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true }
+            },
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+{% endblock %}
