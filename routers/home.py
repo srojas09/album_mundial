@@ -52,8 +52,14 @@ def buscar(request: Request, q: str = "", db: Session = Depends(get_db)):
             Jugador.activo == True
         ).all()
 
+    # Obtener laminas del usuario
+    from models.lamina_album import LaminaAlbum
+    laminas = db.query(LaminaAlbum).filter(LaminaAlbum.usuario_id == user.id).all()
+    laminas_map = {l.jugador_id: l for l in laminas}
+
     return templates.TemplateResponse(request=request, name="buscar.html", context={
         "user": user,
         "jugadores": jugadores,
         "query": q,
+        "laminas_map": laminas_map,
     })
