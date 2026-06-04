@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Álbum — Mundial 2026{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">
+        <i class="bi bi-book-fill text-warning"></i> Mi Álbum
+    </h3>
+    <span class="text-muted">{{ tengo }}/{{ total }} láminas</span>
+</div>
+
+<!-- Progreso -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+            <span class="fw-semibold">Progreso del álbum</span>
+            <span class="text-muted">{{ progreso }}%</span>
+        </div>
+        <div class="progress">
+            <div class="progress-bar bg-warning" style="width: {{ progreso }}%"></div>
+        </div>
+        <div class="row text-center mt-3">
+            <div class="col-4">
+                <div class="text-success fw-bold fs-5">{{ tengo }}</div>
+                <div class="text-muted small">Tengo</div>
+            </div>
+            <div class="col-4">
+                <div class="text-danger fw-bold fs-5">{{ faltantes }}</div>
+                <div class="text-muted small">Faltan</div>
+            </div>
+            <div class="col-4">
+                <div class="text-warning fw-bold fs-5">{{ total }}</div>
+                <div class="text-muted small">Total</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtro por selección -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" action="/album" class="d-flex gap-2 flex-wrap">
+            <select name="seleccion_id" class="form-select w-auto">
+                <option value="">🌍 Todas las selecciones</option>
+                {% for s in selecciones %}
+                <option value="{{ s.id }}" {% if seleccion_id == s.id %}selected{% endif %}>
+                    {{ s.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-warning fw-bold">
+                <i class="bi bi-funnel"></i> Filtrar
+            </button>
+            {% if seleccion_id %}
+            <a href="/album" class="btn btn-outline-secondary">
+                <i class="bi bi-x"></i> Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Grid de jugadores -->
+<div class="row g-3">
+    {% for jugador in jugadores %}
+    {% set lamina = laminas_map.get(jugador.id) %}
+    {% set tengo_esta = lamina and lamina.tengo %}
+
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card border-0 shadow-sm jugador-card h-100
+            {% if tengo_esta %}tengo{% else %}faltante{% endif %}">
+
+            {% if jugador.foto_url %}
+            <img src="{{ jugador.foto_url }}" alt="{{ jugador.nombre }}"
+                 class="card-img-top" style="height:180px;object-fit:contain;background:#f8f9fa;padding:8px;">
+            {% else %}
+            <div class="img-placeholder">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            {% endif %}
+
+            <!-- Badge estado -->
+            <div class="position-absolute top-0 end-0 m-2">
+                {% if tengo_esta %}
+                <span class="badge bg-success"><i class="bi bi-check-lg"></i> Tengo</span>
+                {% else %}
+                <span class="badge bg-secondary"><i class="bi bi-question-lg"></i> Falta</span>
+                {% endif %}
+            </div>
+
+            <div class="card-body p-3">
+                <h6 class="fw-bold mb-1 text-truncate">{{ jugador.nombre }}</h6>
+                <p class="text-muted small mb-1">
+                    <i class="bi bi-shield-fill"></i> {{ jugador.seleccion.nombre }}
+                </p>
+                <p class="text-muted small mb-2">
+                    <i class="bi bi-person-badge"></i> {{ jugador.posicion or "—" }}
+                    &nbsp;|&nbsp;#{{ jugador.numero_camiseta or "—" }}
+                </p>
+
+                <form method="post" action="/album/toggle/{{ jugador.id }}">
+                    <button type="submit" class="btn btn-sm w-100
+                        {% if tengo_esta %}btn-outline-danger{% else %}btn-warning{% endif %}">
+                        {% if tengo_esta %}
+                        <i class="bi bi-x-circle"></i> Quitar
+                        {% else %}
+                        <i class="bi bi-plus-circle"></i> La tengo
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not jugadores %}
+<div class="text-center py-5">
+    <i class="bi bi-emoji-frown text-muted" style="font-size:3rem;"></i>
+    <h5 class="text-muted mt-3">No se encontraron jugadores</h5>
+</div>
+{% endif %}
+
+{% endblock %}
