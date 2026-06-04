@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Publicar Lámina — Mundial 2026{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center mb-4">
+    <a href="/marketplace" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h3 class="fw-bold mb-0">
+        <i class="bi bi-plus-circle text-warning"></i> Publicar Lámina
+    </h3>
+</div>
+
+{% if request.query_params.get('error') == '1' %}
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle"></i>
+    No tienes esa lámina repetida disponible para publicar.
+</div>
+{% endif %}
+
+{% if request.query_params.get('error') == '2' %}
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle"></i>
+    Ya tienes una publicación activa para esa lámina.
+</div>
+{% endif %}
+
+{% if repetidas %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <form method="post" action="/marketplace/publicar">
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Selecciona la lámina a publicar</label>
+                <select name="jugador_id" class="form-select" required>
+                    <option value="">— Elige una lámina repetida —</option>
+                    {% for lamina in repetidas %}
+                    {% set jugador = lamina.jugador %}
+                    <option value="{{ jugador.id }}">
+                        {{ jugador.nombre }} — {{ jugador.seleccion.nombre }}
+                        (#{{ jugador.numero_camiseta or "—" }})
+                        · {{ lamina.cantidad_repetidas }} repetida(s)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Precio ($)</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
+                    <input type="number" name="precio" class="form-control"
+                           placeholder="Ej: 5000" min="0" step="100" required>
+                </div>
+                <div class="form-text">Define el precio en pesos colombianos</div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Descripción <span class="text-muted">(opcional)</span></label>
+                <textarea name="descripcion" class="form-control" rows="3"
+                          placeholder="Ej: Lámina en perfecto estado, lista para entregar..."
+                          maxlength="300"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-warning fw-bold w-100 py-2">
+                <i class="bi bi-shop"></i> Publicar en el marketplace
+            </button>
+        </form>
+    </div>
+</div>
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-emoji-frown text-muted" style="font-size:3rem;"></i>
+    <h5 class="text-muted mt-3">No tienes láminas repetidas para publicar</h5>
+    <p class="text-muted">
+        Ve a tu álbum, marca las láminas que tienes y agrega las repetidas.
+    </p>
+    <a href="/album" class="btn btn-warning fw-bold mt-2">
+        <i class="bi bi-book"></i> Ir al álbum
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
