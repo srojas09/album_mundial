@@ -27,9 +27,10 @@ body {
 
 .jugador-card .card-img-top {
     height: 180px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 12px 12px 0 0;
-    background-color: #e9ecef;
+    background-color: #f8f9fa;
+    padding: 8px;
 }
 
 .jugador-card.tengo {

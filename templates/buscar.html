@@ -35,7 +35,7 @@
             <div class="card border-0 shadow-sm jugador-card h-100">
                 {% if jugador.foto_url %}
                 <img src="{{ jugador.foto_url }}" alt="{{ jugador.nombre }}"
-                     class="card-img-top" style="height:180px;object-fit:cover;">
+                    class="card-img-top" style="height:180px;object-fit:contain;background:#f8f9fa;">
                 {% else %}
                 <div class="img-placeholder">
                     <i class="bi bi-person-fill"></i>
